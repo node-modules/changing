@@ -48,6 +48,7 @@ proto.add = function (fullpath) {
       event: null,
       path: fullpath,
       stat: null,
+      errorMessage: null
     };
     this._checkPath(fullpath);
   }
@@ -72,8 +73,23 @@ proto._checkPath = function (fullpath) {
   let that = this;
   fs.lstat(fullpath, function (err, stat) {
     if (err) {
+      if (info.errorMessage === err.message) {
+        // ignore this error
+        return;
+      }
+      info.errorMessage = err.message;
       return that.emit('stat-error', err);
     }
+
+    if (info.errorMessage) {
+      // error gone, need to emit change
+      info.errorMessage = null;
+      info.stat = stat;
+      info.event = 'change';
+      that.emit('change', info);
+      return;
+    }
+
     if (!info.stat) {
       info.stat = stat;
       return;

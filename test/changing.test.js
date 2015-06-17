@@ -22,9 +22,17 @@ const changing = require('../');
 const fixtures = path.join(__dirname, 'fixtures');
 
 describe('changing.test.js', function () {
-  afterEach(function () {
+  function cleanup() {
     fs.writeFileSync(path.join(fixtures, 'foo.js'), 'bar\n');
-  });
+    try {
+      fs.unlinkSync(path.join(fixtures, '.tmpfile'));
+    } catch (_) {
+      // ignore error
+    }
+  }
+
+  beforeEach(cleanup);
+  afterEach(cleanup);
 
   it('should create watch without options', function () {
     var watcher = changing();
@@ -32,7 +40,7 @@ describe('changing.test.js', function () {
   });
 
   it('should watching fixtures/foo.js change', function (done) {
-    let watcher = changing({ interval: '1s' });
+    let watcher = changing({ interval: 500 });
     watcher.add(path.join(fixtures, 'foo.js'));
     watcher.add(path.join(fixtures, 'foo.js'));
     watcher.on('change', function (info) {
@@ -47,11 +55,11 @@ describe('changing.test.js', function () {
 
     setTimeout(function () {
       fs.writeFileSync(path.join(fixtures, 'foo.js'), 'bar update\n');
-    }, 1500);
+    }, 1000);
   });
 
   it('should got stat-error when watch filepath not exists', function (done) {
-    let watcher = changing({ interval: '1s' });
+    let watcher = changing({ interval: '100ms' });
     watcher.add(path.join(fixtures, 'foo.js-not-exists'));
     watcher.add(path.join(fixtures, 'foo.js-not-exists'));
     watcher.on('change', function () {
@@ -59,8 +67,39 @@ describe('changing.test.js', function () {
     });
     watcher.on('stat-error', function (err) {
       assert.equal(err.code, 'ENOENT');
-      watcher.close();
-      done();
+      // and emit once
+      setTimeout(function () {
+        watcher.close();
+        done();
+      }, 200);
     });
+  });
+
+  it('should watching fixtures/.tmpfile become exists', function (done) {
+    let watcher = changing({ interval: 100 });
+    watcher.add(path.join(fixtures, '.tmpfile'));
+    watcher.on('change', function (info) {
+      assert.equal(info.event, 'change');
+      assert.equal(info.path, path.join(fixtures, '.tmpfile'));
+      assert(info.stat);
+
+      setTimeout(function () {
+        // remove it and emit stat-error again
+        fs.unlinkSync(path.join(fixtures, '.tmpfile'));
+        watcher.on('stat-error', function (err) {
+          assert.equal(err.code, 'ENOENT');
+
+          // and emit once
+          setTimeout(function () {
+            watcher.close();
+            done();
+          }, 200);
+        });
+      }, 200);
+    });
+
+    setTimeout(function () {
+      fs.writeFileSync(path.join(fixtures, '.tmpfile'), 'tmpfile update\n');
+    }, 200);
   });
 });
