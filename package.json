@@ -21,7 +21,7 @@
   "devDependencies": {
     "autod": "*",
     "contributors": "*",
-    "istanbul-harmony": "*",
+    "istanbul": "*",
     "jshint": "*",
     "mocha": "*"
   },

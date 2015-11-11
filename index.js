@@ -17,7 +17,7 @@
 const fs = require('fs');
 const util = require('util');
 const ms = require('humanize-ms');
-const EventEmitter = require('events').EventEmitter;
+const EventEmitter = require('events');
 
 module.exports = Watcher;
 
