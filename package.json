@@ -16,7 +16,7 @@
     "contributors": "contributors -f plain -o AUTHORS"
   },
   "dependencies": {
-    "humanize-ms": "~1.0.1"
+    "humanize-ms": "~1.2.1"
   },
   "devDependencies": {
     "autod": "*",
