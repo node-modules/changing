@@ -1,6 +1,6 @@
 {
   "name": "changing",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Watching `file`, `dir` or `link` changing, using interval timer.",
   "main": "index.js",
   "files": [
